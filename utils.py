@@ -20,21 +20,55 @@ def fetch_repos(repos_url):
     return response.json()
 
 
+# def calculate_stats(repos_data):
+#     total_stars = 0
+#     language_count = {}
+
+#     for repo in repos_data:
+#         total_stars += repo.get("stargazers_count", 0)
+
+#         lang = repo.get("language")
+#         if lang:
+#             language_count[lang] = language_count.get(lang, 0) + 1
+
+#     top_language = (
+#         max(language_count, key=language_count.get)
+#         if language_count
+#         else "None"
+#     )
+
+#     return total_stars, language_count, top_language
+
 def calculate_stats(repos_data):
     total_stars = 0
-    language_count = {}
+    
+    language_map = {}
+
+    repo_list = []
 
     for repo in repos_data:
-        total_stars += repo.get("stargazers_count", 0)
+        stars = repo.get("stargazers_count", 0)
+        total_stars += stars
 
+        # collect repo info
+        repo_list.append({
+            "name": repo.get("name"),
+            "stars": stars
+        })
+
+        # language counting
         lang = repo.get("language")
         if lang:
-            language_count[lang] = language_count.get(lang, 0) + 1
+            language_map[lang] = language_map.get(lang, 0) + 1
 
+    # top language
     top_language = (
-        max(language_count, key=language_count.get)
-        if language_count
+        max(language_map, key=language_map.get)
+        if language_map
         else "None"
     )
 
-    return total_stars, language_count, top_language
+    # sort repos by stars (descending)
+    top_repos = sorted(repo_list, key=lambda x: x["stars"], reverse=True)[:5]
+
+    return total_stars, language_map, top_language, top_repos
