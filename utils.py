@@ -1,5 +1,5 @@
 import requests
-
+from datetime import datetime
 
 def fetch_user(username):
     url = f"https://api.github.com/users/{username}"
@@ -10,15 +10,35 @@ def fetch_user(username):
 
     return response.json()
 
+import requests
 
-def fetch_repos(repos_url):
-    response = requests.get(repos_url)
+def fetch_user_repos(username):
+    url = f"https://api.github.com/users/{username}/repos"
+    response = requests.get(url)
 
     if response.status_code != 200:
-        return []
+        return None
 
-    return response.json()
+    repos = response.json()
 
+    # sort by stars (descending)
+    repos_sorted = sorted(repos, key=lambda x: x["stargazers_count"], reverse=True)
+
+    # take top 5
+    top_repos = repos_sorted[:5]
+
+    # clean response
+    formatted = []
+    for repo in top_repos:
+        formatted.append({
+            "name": repo["name"],
+            "stars": repo["stargazers_count"],
+            "language": repo["language"],
+            "repo_url": repo["html_url"],
+            "created_at": repo["created_at"]
+        })
+
+    return formatted
 
 # def calculate_stats(repos_data):
 #     total_stars = 0
@@ -72,3 +92,15 @@ def calculate_stats(repos_data):
     top_repos = sorted(repo_list, key=lambda x: x["stars"], reverse=True)[:5]
 
     return total_stars, language_map, top_language, top_repos
+
+def calculate_account_age(created_at):
+    created_date = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%SZ")
+    today = datetime.utcnow()
+
+    age_years = today.year - created_date.year
+
+    # adjust if birthday hasn't occurred yet this year
+    if (today.month, today.day) < (created_date.month, created_date.day):
+        age_years -= 1
+
+    return age_years
