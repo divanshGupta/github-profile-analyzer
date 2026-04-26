@@ -1,17 +1,22 @@
 from flask import Blueprint, jsonify, request
+import logging
 from services.github_service import get_user_profile, get_user_top_repos
 
 github_bp = Blueprint("github", __name__)
 
-
 @github_bp.route("/user/<username>", methods=["GET"])
 def user_profile(username):
-    data = get_user_profile(username)
+    try:
+        data = get_user_profile(username)
 
-    if not data:
-        return jsonify({"error": "User not found"}), 404
+        if not data:
+            return jsonify({"error": "User not found"}), 404
 
-    return jsonify(data)
+        return jsonify(data)
+    
+    except Exception as e:
+        logging.error(str(e))
+        return jsonify({"error": "Internal server error"}), 500
 
 
 @github_bp.route("/user/<username>/repos", methods=["GET"])

@@ -1,5 +1,6 @@
 import requests
 import logging
+from flask import Flask, jsonify
 from utils.helpers import calculate_account_age
 from utils.cache import set_cache, get_cache
 
@@ -7,6 +8,9 @@ BASE_URL = "https://api.github.com"
 
 
 def get_user_profile(username):
+    if not username or len(username) < 2:
+        return jsonify({"success": False, "error": "Invalid username"}), 400
+    
     cache_key = f"user:{username}"
 
     cached = get_cache(cache_key)
@@ -16,7 +20,7 @@ def get_user_profile(username):
     
     logging.info(f"Fetching user from Github: {username}")
 
-    response = requests.get(f"{BASE_URL}/users/{username}")
+    response = requests.get(f"{BASE_URL}/users/{username}", timeout=5)
     data = handle_github_response(response)
 
     if not data:
@@ -45,7 +49,7 @@ def get_user_top_repos(username, limit=5):
     
     logging.info(f"Fetching repos from Github: {username}")
 
-    response = requests.get(f"{BASE_URL}/users/{username}/repos")
+    response = requests.get(f"{BASE_URL}/users/{username}/repos", timeout=5)
     repos = handle_github_response(response)
 
     if repos is None:

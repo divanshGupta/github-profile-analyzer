@@ -8,5 +8,12 @@ app = Flask(__name__)
 
 app.register_blueprint(github_bp)
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    return {
+        "success": False,
+        "error": str(e)
+    }, 500
+
 if __name__ == "__main__":
     app.run(debug=True)

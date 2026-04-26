@@ -1,4 +1,3 @@
-import requests
 from datetime import datetime
 
 def calculate_account_age(created_at):
